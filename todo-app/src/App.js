@@ -1,23 +1,81 @@
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react'
 import './App.css';
+import TodoItems from './components/TodoItems';
 
 function App() {
+
+  const [todos, setTodos] = useState([])
+  const [input, setInput] = useState('')
+  const [filter, setFilter] = useState('All')
+
+  const filteredTodo = todos.filter((todo)=>{
+    if (filter === 'complete') return todo.completed
+    if (filter === 'active') return !todo.completed
+    return true
+  })
+
+  const handleTodo=()=>{
+    if(input.trim()){
+      const newTodo = {
+        id: Date.now(),
+        text: input,
+        completed: false,
+      }
+      setTodos([...todos, newTodo])
+      setInput('')
+    }
+  }
+
+  const toggleComplete = (id)=>{
+    setTodos(
+      todos.map((todo)=>
+        todo.id === id ? {...todo, completed: !todo.completed}:todo
+      )
+    )
+  }
+
+  const deleteTodo = (id)=>{
+    setTodos(
+      todos.filter((todo)=>
+        todo.id !== id
+      )
+    )
+  }
+
+
+  useEffect(()=>{
+    localStorage.setItem('todos', JSON.stringify(todos))
+  },[todos])
+
+  useEffect(()=>{
+    const savedTodos = JSON.parse(localStorage.getItem('todos'))
+    if(savedTodos){
+      setTodos(savedTodos)
+    }
+  },[])
+  
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>TODO APP</h1>
+      <input 
+      type='text'
+      value={input}
+      placeholder='Enter taks...'
+      onChange={(e)=> setInput(e.target.value)}
+      >
+      </input>
+      <button onClick={handleTodo}>Add</button>
+      <ul>
+        {filteredTodo.map((todo)=>(
+          <TodoItems 
+            key={todo.id}
+            todo={todo}
+            toggleComplete={toggleComplete}
+            deleteTodo={deleteTodo}
+          />
+        ))}
+      </ul>
     </div>
   );
 }
